@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  db:
+    build: .
+    container_name: terra-core-datastore
+    # Hardware optimization for M3 chip
+    platform: linux/arm64
+    # Load the security sandbox
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    volumes:
+      # Persistent volume mapping to preserve data when the containers stop
+      - terra_db_data:/var/lib/postgresql/data
+      # Map the local SQL script directory into the container's startup routine
+      - ./db-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  # Declare the named volume for data persistence
+  terra_db_data:

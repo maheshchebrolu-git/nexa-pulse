@@ -1,0 +1,16 @@
+# Security
+.env
+
+# Python Environments
+venv/
+__pycache__/
+*.pyc
+
+# macOS System Files
+.DS_Store
+
+# Database Data
+terra_db_data/
+
+# misc
+about/
