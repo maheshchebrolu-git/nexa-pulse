@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
   db:
-    build: .
-    container_name: terra-core-datastore
+    build: ./db
+    container_name: nexa-pulse-db
     # Hardware optimization for M3 chip
     platform: linux/arm64
     # Load the security sandbox
@@ -13,15 +11,27 @@ services:
       - "5432:5432"
     volumes:
       # Persistent volume mapping to preserve data when the containers stop
-      - terra_db_data:/var/lib/postgresql/data
+      - nexa_db_data:/var/lib/postgresql/data
       # Map the local SQL script directory into the container's startup routine
-      - ./db-init:/docker-entrypoint-initdb.d
+      - ./db/init:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 5
+    
+# NOTE: InferEdge (LLM inference server) is intentionally excluded from
+# this compose file. MLX requires Apple Silicon Metal GPU access which
+# is unavailable inside Docker containers.
+#
+# To run InferEdge locally:
+#   source venv/bin/activate
+#   cd inferedge
+#   python -m uvicorn server:app --host 0.0.0.0 --port 8000
+#
+# Future Docker containers communicate with InferEdge via:
+#   http://host.docker.internal:8000
 
 volumes:
   # Declare the named volume for data persistence
-  terra_db_data:
+  nexa_db_data:
