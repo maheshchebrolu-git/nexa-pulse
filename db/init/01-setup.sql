@@ -47,6 +47,15 @@ CREATE TABLE IF NOT EXISTS nexa.trips (
     metadata JSONB
 );
 
+-- 4. Policy_docs: store policy documents for vector search and retrieval.
+CREATE TABLE IF NOT EXISTS nexa.policy_docs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    content TEXT NOT NULL,
+    embedding VECTOR(384),
+    metadata JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 ---
 -- PERFORMANCE ARCHITECTURE: INDEXES
 ---
@@ -54,7 +63,7 @@ CREATE TABLE IF NOT EXISTS nexa.trips (
 -- Spatial Optimization (GiST)
 
 -- 1. Drivers Table 
--- index on location for spatial queries.
+-- Index on location for spatial queries.
 CREATE INDEX IF NOT EXISTS idx_drivers_location 
 ON nexa.drivers USING GIST (location);
 
@@ -64,9 +73,23 @@ CREATE INDEX IF NOT EXISTS idx_drivers_available_location
 ON nexa.drivers USING GIST (location) WHERE status = 'available';
 
 -- 2. Demand_zones Table
--- indexing the area for spatial queries.
+-- Indexing the area for spatial queries.
 CREATE INDEX IF NOT EXISTS idx_demand_zones_area
 ON nexa.demand_zones USING GIST (area);
 
 -- 3. Trips Table
--- 
+-- Partial spatial index: only active trips, indexed by pickup location.
+-- Active-vs-historical split: completed trips (the bulk) aren't queried spatially.
+CREATE INDEX IF NOT EXISTS idx_trips_active_pickup
+ON nexa.trips USING GIST (pickup_location)
+WHERE status IN ('requested', 'in_progress');
+
+-- B-tree on driver_id for looking up a driver's trips (including history).
+CREATE INDEX IF NOT EXISTS idx_trips_driver_id
+ON nexa.trips (driver_id);
+
+-- 4. Policy_docs Table
+-- Indexing embedding for vector search
+CREATE INDEX IF NOT EXISTS idx_policy_docs_embedding
+ON nexa.policy_docs USING hnsw (embedding vector_cosine_ops);
+
