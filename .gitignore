@@ -12,6 +12,9 @@ __pycache__/
 # Database Data
 nexa_db_data/
 
+#Data dumps
+db/data/tiger_sf_roads
+
 # misc
 about/__pycache__/
 *.pyc
