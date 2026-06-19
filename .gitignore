@@ -18,3 +18,4 @@ db/data/tiger_sf_roads
 # misc
 about/__pycache__/
 *.pyc
+about/
