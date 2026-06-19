@@ -10,7 +10,8 @@ __pycache__/
 .DS_Store
 
 # Database Data
-terra_db_data/
+nexa_db_data/
 
 # misc
-about/
+about/__pycache__/
+*.pyc
